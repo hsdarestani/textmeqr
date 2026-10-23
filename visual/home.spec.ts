@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import fs from 'node:fs';
+fs.mkdirSync('visual-artifacts', { recursive: true });
 
 test('desktop landing looks complete', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
