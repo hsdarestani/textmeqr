@@ -1,0 +1,31 @@
+{
+  "name": "textmeqr",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "check": "tsc --noEmit && node --check worker/index.js && node --test",
+    "preview": "wrangler dev",
+    "db:local": "wrangler d1 migrations apply textmeqr --local",
+    "db:remote": "wrangler d1 migrations apply textmeqr --remote",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "lucide-react": "^0.468.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.8.0",
+    "vite": "^7.0.0",
+    "wrangler": "^4.0.0"
+  },
+  "engines": { "node": ">=20.19" }
+}
