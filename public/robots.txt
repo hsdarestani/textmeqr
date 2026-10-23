@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Disallow: /anmelden
+Disallow: /q/
+Disallow: /api/
+Sitemap: https://textmeqr.de/sitemap.xml
