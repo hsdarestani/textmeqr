@@ -1,0 +1,5 @@
+AUTH_SECRET=replace-with-a-unique-long-random-secret
+RESEND_API_KEY=re_...
+MAIL_FROM=TextMe <notify@your-verified-domain.example>
+TURNSTILE_SECRET_KEY=
+TURNSTILE_SITE_KEY=
