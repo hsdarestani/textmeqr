@@ -9,10 +9,18 @@ import {
 } from 'lucide-react';
 import './styles.css';
 
-type Code = { id: string; slug: string; label: string; active: number; views: number; created_at?: number; message_count?: number; unread_count?: number };
+type Code = { id: string; slug: string; label: string; theme: string; active: number; views: number; created_at?: number; message_count?: number; unread_count?: number };
 type Notice = { id: string; reason: string; note: string; is_read: number; emailed: number; created_at: number; vehicle_label: string; slug: string };
 type Config = { turnstileSiteKey: string | null; notificationsEnabled: boolean };
 type ApiError = Error & { status?: number };
+const themes = [
+  { id: 'classic_dawn', title: 'Classic Dawn', bg: '#eee8d9', ink: '#233a29', qr: '#172b20' },
+  { id: 'galactic_twilight', title: 'Galactic Twilight', bg: '#252842', ink: '#ebffbc', qr: '#1c2841' },
+  { id: 'emerald_canopy', title: 'Emerald Canopy', bg: '#164634', ink: '#d9ff9e', qr: '#133e31' },
+  { id: 'azure_depths', title: 'Azure Depths', bg: '#1b455c', ink: '#d4eeff', qr: '#19364a' },
+  { id: 'monochic', title: 'Monochic', bg: '#1a1c1b', ink: '#ffffff', qr: '#151515' }
+];
+const themesById = (id: string) => themes.find(theme => theme.id === id) || themes[0];
 const reasons = [
   { id: 'blocked', label: 'Zufahrt blockiert', icon: CarFront },
   { id: 'lights', label: 'Licht ist an', icon: Sun },
@@ -60,16 +68,16 @@ function Footer() {
     <div className="footer-links"><a href="/#so-gehts">So funktioniert's</a><a href="/#faq">FAQ</a><a href="/datenschutz">Datenschutz</a><a href="/impressum">Impressum</a></div>
   </div><div className="container footer-bottom"><span>© {new Date().getFullYear()} TextMe</span><span>Mit Rücksicht unterwegs.</span></div></footer>;
 }
-function QRVisual({ value, className = '' }: { value: string; className?: string }) {
+function QRVisual({ value, className = '', theme = 'classic_dawn' }: { value: string; className?: string; theme?: string }) {
   const [source, setSource] = useState('');
   useEffect(() => {
     let alive = true;
     QRCode.toDataURL(value, { width: 540, margin: 1, errorCorrectionLevel: 'H',
-      color: { dark: '#101810', light: '#ffffffff' } })
+      color: { dark: themesById(theme).qr, light: '#ffffffff' } })
       .then(url => { if (alive) setSource(url); })
       .catch(() => { if (alive) setSource(''); });
     return () => { alive = false; };
-  }, [value]);
+  }, [value, theme]);
   return source ? <img className={'qr-img ' + className} src={source} alt="Dein individueller QR-Code" /> : <div className="qr-loading" aria-label="QR-Code wird erzeugt"><QrCode size={44}/></div>;
 }
 function CarArt() {
@@ -248,15 +256,44 @@ function CodeCard({ code, refresh }: { code: Code; refresh: () => Promise<void> 
   const [copied, setCopied] = useState(false);
   async function toggle() { setBusy(true); try { await api('/codes/' + code.id, { method: 'PATCH', body: JSON.stringify({ active: !code.active }) }); await refresh(); } catch(e) { alert((e as Error).message); } finally { setBusy(false); } }
   async function saveName() { setBusy(true); try { await api('/codes/' + code.id, { method: 'PATCH', body: JSON.stringify({ label }) }); setRenaming(false); await refresh(); } catch(e) { alert((e as Error).message); } finally { setBusy(false); } }
-  async function download() {
-    const data = await QRCode.toDataURL(url, { width: 1200, margin: 3, errorCorrectionLevel: 'H', color: { dark: '#101810', light: '#ffffffff' } });
-    const a = document.createElement('a'); a.href = data; a.download = 'textme-' + code.label.trim().replace(/[^a-z0-9äöü_-]/gi, '-') + '.png'; a.click();
+  async function changeTheme(theme: string) {
+    setBusy(true);
+    try { await api('/codes/' + code.id, { method: 'PATCH', body: JSON.stringify({ theme }) }); await refresh(); }
+    catch (e) { alert((e as Error).message); } finally { setBusy(false); }
   }
-  return <article className="code-card"><div className="code-card-top"><span className={code.active ? 'status-live' : 'status-paused'}><i/> {code.active ? 'AKTIV' : 'PAUSIERT'}</span><span className="code-id">{code.slug.slice(0, 7).toUpperCase()}</span></div>
-    <div className="code-body"><div className="code-qr-box"><QRVisual value={url}/></div><div className="code-details">
+  async function download() {
+    const theme = themesById(code.theme);
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200; canvas.height = 1500;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Grafik konnte nicht erstellt werden.');
+    ctx.fillStyle = theme.bg; ctx.fillRect(0,0,1200,1500);
+    ctx.fillStyle = theme.ink;
+    ctx.font = '800 130px Manrope, sans-serif';
+    ctx.fillText('textme.', 115, 238);
+    ctx.font = '700 25px Manrope, sans-serif';
+    ctx.fillText('DEIN AUTO. ERREICHBAR. PRIVAT.', 115, 313);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(110,400,980,980);
+    const data = await QRCode.toDataURL(url, { width: 800, margin: 2, errorCorrectionLevel: 'H', color: { dark: theme.qr, light: '#ffffff' } });
+    await new Promise<void>((resolve, reject) => {
+      const image = new Image(); image.onload=()=>{ctx.drawImage(image,200,490,800,800);resolve();};
+      image.onerror=()=>reject(new Error('QR konnte nicht geladen werden.')); image.src=data;
+    });
+    ctx.fillStyle = theme.ink;
+    ctx.font = '700 30px Manrope, sans-serif';
+    ctx.fillText('SCAN ME IF YOU NOTICE SOMETHING', 115, 1458);
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = 'textme-' + code.label.trim().replace(/[^a-z0-9äöü_-]/gi, '-') + '.png';
+    a.click();
+  }
+  return <article className="code-card" data-theme={code.theme}><div className="code-card-top"><span className={code.active ? 'status-live' : 'status-paused'}><i/> {code.active ? 'AKTIV' : 'PAUSIERT'}</span><span className="code-id">{code.slug.slice(0, 7).toUpperCase()}</span></div>
+    <div className="code-body"><div className="code-qr-box"><QRVisual value={url} theme={code.theme}/></div><div className="code-details">
       {renaming ? <div className="rename-row"><input aria-label="Fahrzeugname" value={label} maxLength={40} onChange={e => setLabel(e.target.value)}/><button type="button" onClick={saveName} disabled={busy}><Check size={18}/></button></div> : <button type="button" className="code-name" onClick={() => setRenaming(true)} title="Namen bearbeiten">{code.label} <span>✎</span></button>}
       <span className="code-subtitle">Deine private Fahrzeugverbindung</span><div className="code-stats"><div><strong>{code.views || 0}</strong><span>Aufrufe</span></div><div><strong>{code.message_count || 0}</strong><span>Hinweise</span></div></div>
     </div></div>
+    <div className="design-picker"><div><span>DESIGN AUSWÄHLEN</span><small>{themesById(code.theme).title}</small></div><div className="theme-swatch-list">{themes.map(theme => <button type="button" key={theme.id} disabled={busy} title={theme.title} aria-label={theme.title} aria-pressed={theme.id === code.theme} className={theme.id === code.theme ? 'theme-swatch active' : 'theme-swatch'} style={{ backgroundColor: theme.bg }} onClick={() => changeTheme(theme.id)} />)}</div></div>
     <div className="code-actions"><button onClick={download} title="QR-Code als PNG herunterladen"><Download size={17}/> Download</button><button onClick={async () => { try { await navigator.clipboard.writeText(url); setCopied(true); window.setTimeout(() => setCopied(false), 2000); } catch { alert('Link kann nicht kopiert werden.'); } }} title="Link kopieren">{copied ? <Check size={17}/> : <Copy size={17}/>} {copied ? 'Kopiert' : 'Link'}</button><button disabled={busy} onClick={toggle} className="toggle-action" title={code.active ? 'Code pausieren' : 'Code aktivieren'}><Power size={17}/>{code.active ? 'Pausieren' : 'Aktivieren'}</button></div>
   </article>;
 }
