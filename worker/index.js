@@ -237,7 +237,7 @@ async function handle(request, env, ctx) {
 
   if (path === '/api/codes' && request.method === 'GET') {
     const result = await env.DB.prepare(
-      'SELECT v.id, v.slug, v.label, v.active, v.views, v.created_at, (SELECT COUNT(*) FROM messages m WHERE m.vehicle_id=v.id) AS message_count, (SELECT COUNT(*) FROM messages m WHERE m.vehicle_id=v.id AND m.is_read=0) AS unread_count FROM vehicle_codes v WHERE v.user_id=? ORDER BY v.created_at DESC'
+      'SELECT v.id, v.slug, v.label, v.theme, v.active, v.views, v.created_at, (SELECT COUNT(*) FROM messages m WHERE m.vehicle_id=v.id) AS message_count, (SELECT COUNT(*) FROM messages m WHERE m.vehicle_id=v.id AND m.is_read=0) AS unread_count FROM vehicle_codes v WHERE v.user_id=? ORDER BY v.created_at DESC'
     ).bind(user.id).all();
     return response({ codes: result.results });
   }
@@ -249,7 +249,7 @@ async function handle(request, env, ctx) {
     if (count.n >= 12) return fail('Maximal 12 QR-Codes pro Konto.', 409);
     const id = crypto.randomUUID(), slug = randomSlug();
     await env.DB.prepare('INSERT INTO vehicle_codes (id,user_id,slug,label,created_at) VALUES (?,?,?,?,?)').bind(id,user.id,slug,label,time()).run();
-    return response({ ok: true, code: { id, slug, label, active: 1, views: 0 } }, 201);
+    return response({ ok: true, code: { id, slug, label, theme: 'classic_dawn', active: 1, views: 0 } }, 201);
   }
   const codeMatch = path.match(/^\/api\/codes\/([0-9a-f-]{36})$/);
   if (codeMatch && request.method === 'PATCH') {
@@ -260,6 +260,11 @@ async function handle(request, env, ctx) {
       const label = validateLabel(body.label);
       if (!label) return fail('Ungültiger Name.');
       await env.DB.prepare('UPDATE vehicle_codes SET label=? WHERE id=? AND user_id=?').bind(label,existing.id,user.id).run();
+    }
+    if (body.theme !== undefined) {
+      const themes = new Set(['classic_dawn','galactic_twilight','emerald_canopy','azure_depths','monochic']);
+      if (!themes.has(body.theme)) return fail('Ungültiges Design.');
+      await env.DB.prepare('UPDATE vehicle_codes SET theme=? WHERE id=? AND user_id=?').bind(body.theme,existing.id,user.id).run();
     }
     if (typeof body.active === 'boolean') {
       await env.DB.prepare('UPDATE vehicle_codes SET active=? WHERE id=? AND user_id=?').bind(Number(body.active),existing.id,user.id).run();
