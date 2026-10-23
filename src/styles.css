@@ -469,3 +469,21 @@ h1,h2,h3 { font-family: Manrope,sans-serif; }
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after { scroll-behavior: auto!important; animation-duration: .01ms!important; transition-duration: .01ms!important; }
 }
+
+
+/* Per-vehicle print themes */
+.design-picker { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 25px 18px; border-top: 1px solid #f0f2ed; }
+.design-picker>div:first-child>span { display: block; color: #879483; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+.design-picker small { display: block; color: #3e4f38; font-size: 11px; font-weight: 700; margin-top: 5px; }
+.theme-swatch-list { display: flex; gap: 8px; }
+.theme-swatch { display: inline-block; position: relative; width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #cbd7c8; transition: box-shadow .2s, transform .2s; }
+.theme-swatch.active { box-shadow: 0 0 0 2px #85a845; transform: scale(1.08); }
+.theme-swatch:hover { transform: translateY(-2px); }
+.code-card[data-theme="galactic_twilight"] .code-qr-box { border-color: #d7d8ea; background: #eeeff7; }
+.code-card[data-theme="emerald_canopy"] .code-qr-box { border-color: #9cc9af; background: #edfaf3; }
+.code-card[data-theme="azure_depths"] .code-qr-box { border-color: #accdde; background: #eaf3f8; }
+.code-card[data-theme="monochic"] .code-qr-box { border-color: #c6c8c6; background: #f1f1ef; }
+@media(max-width:600px) {
+  .design-picker { padding: 14px 17px; flex-wrap: wrap; }
+  .theme-swatch { width: 27px; height: 27px; }
+}
