@@ -17,6 +17,12 @@
       "migrations_dir": "migrations"
     }
   ],
+  "routes": [
+    {
+      "pattern": "textmeqr.smarbiz.sbs",
+      "custom_domain": true
+    }
+  ],
   "triggers": {
     "crons": ["0 3 * * *"]
   }
