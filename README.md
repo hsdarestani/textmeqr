@@ -23,14 +23,31 @@ React 19, TypeScript, Vite 7, Cloudflare Workers, D1, Resend, optional Turnstile
 ## Set up on Cloudflare
 1. Use Node 22+; run npm install.
 2. Use a trusted environment to run npx wrangler login.
-3. Run npx wrangler d1 create textmeqr and replace REPLACE_WITH_CLOUDFLARE_D1_DATABASE_ID in wrangler.jsonc with the actual returned ID.
+3. The D1 database has already been created. Its ID (8fbe9cca-e8e1-4365-94e5-5df27a7f29f7) is configured in wrangler.jsonc. Confirm that its actual name is textmeqr and it belongs to the same Cloudflare account as the smarbiz.sbs zone.
 4. Set a fresh strong AUTH_SECRET (at least 32 random bytes) via npx wrangler secret put AUTH_SECRET.
 5. Verify a sender domain in Resend and set RESEND_API_KEY and MAIL_FROM using wrangler secret put. Sender must be a real verified email address. Never store credentials in git.
 6. Recommended: configure Cloudflare Turnstile and set BOTH TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY as secrets.
 7. Run npm run db:remote, npm run check, npm run build and npm run deploy.
-8. Attach textmeqr.de as the Worker custom domain through Cloudflare; preserve existing unrelated DNS.
+8. The Wrangler config already maps the Worker to textmeqr.smarbiz.sbs as a Custom Domain. It is created during the authenticated production deploy, provided the smarbiz.sbs zone is in the same account and the hostname has no conflicting CNAME. Do not set a dummy A record.
 9. Complete and legally review /datenschutz and /impressum with actual owner/operator information before any public launch.
 10. Test email OTP, QR creation, anonymous scan and notice, inbox, QR download, deactivate/reactivate, logout, and account deletion in the live environment.
+
+## GitHub Actions manual deployment
+
+A manual workflow exists at .github/workflows/deploy.yml under GitHub Actions -> Deploy TextMeQR to Cloudflare -> Run workflow. It checks TypeScript/unit tests, builds the app, applies remote D1 migrations, then deploys the Worker with its custom domain.
+
+The workflow intentionally does not run automatically on every push; public launch requires verified legal pages and credentials.
+
+Before running it, in GitHub repository -> Settings -> Secrets and variables -> Actions create:
+- CLOUDFLARE_ACCOUNT_ID: the account identifier from your Cloudflare dashboard URL (511541f52b4f4d8342e055f5567ae169).
+- CLOUDFLARE_API_TOKEN: a newly issued scoped token with Workers edit, D1 edit and appropriate custom-domain/zone permissions for the account. Never paste the token into the repository or into a chat.
+
+Separately in Cloudflare Workers -> textmeqr -> Settings -> Variables and Secrets, add runtime secrets:
+- AUTH_SECRET: a random secret at least 32 bytes
+- RESEND_API_KEY and MAIL_FROM: optional for dashboard notices, but required for email-code login. MAIL_FROM must be an actual sender identity verified in Resend.
+- TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY: recommended for a public launch; set the pair together.
+
+If the Worker does not yet exist, Wrangler can create it on the first authenticated deployment, after which you can configure its runtime secrets and deploy again. No production user registration can function before AUTH_SECRET and email sender settings are in place.
 
 ## Local development
 Copy .dev.vars.example to .dev.vars, fill credentials, create the D1 binding ID in Wrangler, and apply migration using npm run db:local. Start npx wrangler dev for the API and static assets (build first). Alternatively use npm run dev for Vite hot reload while local Wrangler runs on port 8787.
