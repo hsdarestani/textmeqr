@@ -8,6 +8,7 @@ import {
   Send, ShieldCheck, Sparkles, Sun, X, Zap
 } from 'lucide-react';
 import './styles.css';
+import { CinematicHero, CinemaStory, useCinemaMotion, useScrollReveals } from './Cinema';
 
 type Code = { id: string; slug: string; label: string; theme: string; active: number; views: number; created_at?: number; message_count?: number; unread_count?: number };
 type Notice = { id: string; reason: string; note: string; is_read: number; emailed: number; created_at: number; vehicle_label: string; slug: string };
@@ -80,48 +81,29 @@ function QRVisual({ value, className = '', theme = 'classic_dawn' }: { value: st
   }, [value, theme]);
   return source ? <img className={'qr-img ' + className} src={source} alt="Dein individueller QR-Code" /> : <div className="qr-loading" aria-label="QR-Code wird erzeugt"><QrCode size={44}/></div>;
 }
-function ConnectionArt() {
-  return <div className="connection-art" aria-label="TextMe QR und beispielhafter Fahrzeughinweis">
-    <div className="signal-orbit orbit-a"/><div className="signal-orbit orbit-b"/><div className="signal-orbit orbit-c"/>
-    <div className="signal-axis"/><div className="art-coordinate">TEXTME / PRIVATE CONNECTION</div>
-    <div className="identity-card"><div className="identity-top"><Logo light/><span>FAHRZEUG ID</span></div>
-      <div className="identity-qr"><QRVisual value={window.location.origin} theme="monochic"/><span className="scan-beam"/></div>
-      <div className="identity-bottom"><span>Ein Scan. Ein guter Hinweis.</span><ScanLine size={23}/></div>
-    </div>
-    <div className="signal-notice"><div className="signal-notice-icon"><Bell size={22}/></div><div><small>SO SIEHT EIN HINWEIS AUS</small><strong>Dein Licht ist noch an.</strong><span>Diskret. Direkt in dein Postfach.</span></div><span className="notice-dot"/></div>
-    <div className="privacy-chip"><ShieldCheck size={16}/> Deine Nummer bleibt privat</div>
-    <div className="art-caption"><span>SCANNEN</span><i/><span>HINWEIS SENDEN</span><i/><span>VERBUNDEN</span></div>
-  </div>;
-}
 function Landing() {
-  return <>
+  const {paused,setPaused}=useCinemaMotion();
+  useScrollReveals();
+  return <div className="cinematic-site">
     <div className="dark-shell">
       <Nav/>
-      <section className="hero"><div className="container hero-layout">
-        <div className="hero-copy">
-          <div className="eyebrow"><span className="eyebrow-line"/> KLEINER CODE. GROSSER UNTERSCHIED. </div>
-          <h1>DEIN AUTO.<br/><span className="heading-light">ERREICHBAR.</span><br/><em>PRIVAT.</em></h1>
-          <p className="hero-lede">Ein Scan genügt. Andere können dir Bescheid geben, wenn etwas mit deinem Auto ist. Ohne deine Telefonnummer. Ohne umständliche App.</p>
-          <div className="hero-cta"><a className="btn btn-lime" href="/app">Jetzt QR-Code erstellen <ArrowUpRight size={20}/></a><a className="hero-text-link" href="/#so-gehts">So funktioniert's <ArrowRight size={18}/></a></div>
-          <div className="hero-trust"><span><ShieldCheck size={17}/> Kontaktdaten bleiben privat</span><span><Zap size={16}/> In Sekunden eingerichtet</span></div>
-        </div>
-        <div className="hero-visual"><ConnectionArt/></div>
-      </div></section>
+      <CinematicHero paused={paused} onPause={()=>setPaused(!paused)}/>
       <div className="feature-strip"><div className="container strip-inner"><span>KEINE TELEFONNUMMER</span><i/><span>EIN EINFACHER SCAN</span><i/><span>FÜR DEINEN ALLTAG</span><i/><span>DU HAST DIE KONTROLLE</span></div></div>
     </div>
+    <CinemaStory paused={paused}/>
     <section id="so-gehts" className="how-section light-section"><div className="container">
       <div className="section-heading"><div><div className="kicker"><span className="kicker-icon">01</span> DIE IDEE</div><h2>Weniger Aufwand.<br/><span>Mehr Rücksicht.</span></h2></div>
         <p>Parkplatz blockiert? Fenster offen? Licht angelassen? Ein QR-Code macht den kleinen Hinweis ganz einfach.</p></div>
       <div className="steps-grid">
         <div className="step-card"><div className="step-top"><span>01 / ANLEGEN</span><QrCode/></div><div className="step-graphic graphic-code"><div className="graphic-qr"><QRVisual value={window.location.origin}/></div><span className="orbit orbit-1"/><span className="orbit orbit-2"/></div><h3>QR-Code erstellen</h3><p>Einmal mit deiner E-Mail anmelden, Fahrzeug benennen und QR-Code herunterladen.</p></div>
-        <div className="step-card"><div className="step-top"><span>02 / ANBRINGEN</span><CarFront/></div><div className="step-graphic graphic-car"><CarFront size={106} strokeWidth={1}/><div className="graphic-sticker"><ScanLine size={23}/></div></div><h3>Sichtbar platzieren</h3><p>Platziere den Code gut sichtbar im Fahrzeug. Auch als digitale Vorlage zum Ausdrucken.</p></div>
+        <div className="step-card"><div className="step-top"><span>02 / ANBRINGEN</span><CarFront/></div><div className="step-graphic graphic-car photo-step"><img src="/images/night-drive-mobile.webp" width="1000" height="562" loading="lazy" alt="Schwarzes Fahrzeug im blauen und roten Licht"/><span className="photo-step-label"><ScanLine size={20}/> DEIN AUTO. VERBUNDEN.</span></div><h3>Sichtbar platzieren</h3><p>Platziere den Code gut sichtbar im Fahrzeug. Auch als digitale Vorlage zum Ausdrucken.</p></div>
         <div className="step-card"><div className="step-top"><span>03 / VERBINDEN</span><Bell/></div><div className="step-graphic graphic-notice"><div className="mini-notice"><div className="mini-icon"><Bell size={19}/></div><div><small>NEUER HINWEIS</small><strong>Dein Licht ist noch an.</strong></div><CheckCircle2 size={22}/></div></div><h3>Hinweis erhalten</h3><p>Andere wählen einen Grund aus. Du siehst die Nachricht in deinem persönlichen Dashboard.</p></div>
       </div>
     </div></section>
-    <section id="vorteile" className="benefits-section"><div className="container benefits-layout"><div className="benefits-left"><div className="kicker"><span className="kicker-icon">02</span> WARUM TEXTME?</div><h2>OFFEN FÜR<br/>HINWEISE.<br/><em>GESCHÜTZT.</em></h2><p>Du entscheidest, wann du erreichbar bist. TextMe gibt anderen einen Weg, freundlich auf Dinge aufmerksam zu machen. Nicht mehr, nicht weniger.</p><a className="btn btn-outline" href="/app">Meinen Code erstellen <ArrowUpRight size={18}/></a></div>
+    <section id="vorteile" className="benefits-section cinematic-benefits"><div className="container benefits-layout"><div className="benefits-left"><div className="kicker"><span className="kicker-icon">02</span> WARUM TEXTME?</div><h2>OFFEN FÜR<br/>HINWEISE.<br/><em>GESCHÜTZT.</em></h2><p>Du entscheidest, wann du erreichbar bist. TextMe gibt anderen einen Weg, freundlich auf Dinge aufmerksam zu machen. Nicht mehr, nicht weniger.</p><a className="btn btn-outline" href="/app">Meinen Code erstellen <ArrowUpRight size={18}/></a></div>
       <div className="benefit-list"><div className="benefit-item"><div className="benefit-icon"><Fingerprint/></div><div><h3>Privat von Anfang an</h3><p>Dein Code zeigt weder Telefonnummer noch E-Mail-Adresse. Nur ein einfaches Hinweisformular.</p></div><span>01</span></div><div className="benefit-item"><div className="benefit-icon"><ScanLine/></div><div><h3>Keine App nötig</h3><p>Wer dir einen Hinweis schickt, braucht nur die Smartphone-Kamera.</p></div><span>02</span></div><div className="benefit-item"><div className="benefit-icon"><Gauge/></div><div><h3>Du behältst die Kontrolle</h3><p>Codes umbenennen, mehrere Fahrzeuge verwalten oder einen Code jederzeit pausieren.</p></div><span>03</span></div><div className="benefit-item"><div className="benefit-icon"><LockKeyhole/></div><div><h3>Weniger Spam</h3><p>Begrenzte Nachrichtenhäufigkeit und eine optionale Sicherheitsprüfung schützen die Kontaktfunktion.</p></div><span>04</span></div></div>
     </div></section>
-    <section className="banner-section"><div className="container banner-content"><div><div className="kicker">DEIN FAHRZEUG, DEIN CODE</div><h2>MEHR ALS NUR<br/>EIN <em>STICKER.</em></h2><p>Digital starten, später auf hochwertigem Material anbringen. Deine Verbindung bleibt dieselbe.</p><a href="/app" className="btn btn-dark">Kostenlos digital starten <ArrowUpRight size={20}/></a></div><div className="banner-art"><div className="banner-plate"><div className="plate-word">textme<span>.</span></div><div className="plate-qr"><QRVisual value={window.location.origin}/></div><div className="plate-caption">SCANNEN UND HINWEIS SENDEN</div></div><span className="banner-sun"/></div></div></section>
+    <section className="banner-section cinematic-banner"><div className="container banner-content"><div><div className="kicker">DEIN FAHRZEUG, DEIN CODE</div><h2>MEHR ALS NUR<br/>EIN <em>STICKER.</em></h2><p>Digital starten, später auf hochwertigem Material anbringen. Deine Verbindung bleibt dieselbe.</p><a href="/app" className="btn btn-dark">Kostenlos digital starten <ArrowUpRight size={20}/></a></div><div className="banner-art"><div className="banner-plate"><div className="plate-word">textme<span>.</span></div><div className="plate-qr"><QRVisual value={window.location.origin}/></div><div className="plate-caption">SCANNEN UND HINWEIS SENDEN</div></div><span className="banner-sun"/></div></div></section>
     <section id="faq" className="faq-section light-section"><div className="container faq-layout"><div><div className="kicker"><span className="kicker-icon">03</span> GUT ZU WISSEN</div><h2>NOCH FRAGEN<span className="accent-mark">?</span></h2><p>Die wichtigsten Antworten auf einen Blick.</p></div><div className="faq-items">
       <details><summary>Ist meine Telefonnummer sichtbar?<Plus size={19}/></summary><p>Nein. Wer deinen QR-Code scannt, sieht nur die verfügbaren Hinweisgründe und ein optionales Nachrichtenfeld. Deine E-Mail und Telefonnummer werden nicht angezeigt.</p></details>
       <details><summary>Muss man eine App installieren?<Plus size={19}/></summary><p>Nein. Der Code öffnet eine mobil optimierte Webseite. Ein Smartphone mit Kamera und Internet reicht.</p></details>
@@ -131,7 +113,7 @@ function Landing() {
     </div></div></section>
     <section className="last-cta"><div className="container last-cta-inner"><span className="cta-symbol"><QrCode size={46}/></span><div><div className="kicker">WORAUF WARTEST DU?</div><h2>EIN KLEINER CODE.<br/><em>EIN GUTES GEFÜHL.</em></h2></div><a href="/app" className="btn btn-lime">Jetzt loslegen <ArrowUpRight size={20}/></a></div></section>
     <Footer/>
-  </>;
+  </div>;
 }
 
 type TurnstileWindow = Window & { turnstile?: { render: (element: HTMLElement, opts: Record<string, unknown>) => string; remove: (id: string) => void } };

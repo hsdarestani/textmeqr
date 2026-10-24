@@ -70,3 +70,38 @@ test('scan submits selected reason and shows success',async({page})=>{
  await expect(page.getByRole('heading',{name:'Danke fürs Bescheidgeben!'})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
 });
+
+test('cinematic assets, scene controls and reduced motion',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});
+ await page.goto('/');
+ await expect(page.locator('.cinema-photo')).toBeVisible();
+ await expect.poll(()=>page.locator('.cinema-photo').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0);
+ await page.screenshot({path:'visual-artifacts/cinema-hero-desktop.png',animations:'disabled'});
+ await page.getByRole('button',{name:'Animationen pausieren'}).click();
+ await expect(page.locator('html')).toHaveClass(/motion-paused/);
+ await page.getByRole('button',{name:/03 PRIVAT BLEIBEN/}).click();
+ await expect(page.getByRole('heading',{name:/Du bist erreichbar/})).toBeVisible();
+ await page.screenshot({path:'visual-artifacts/cinema-story.png',animations:'disabled'});
+ await page.getByRole('button',{name:/01 AUFMERKSAM SEIN/}).click();
+ await expect(page.getByRole('heading',{name:/Ein Licht/})).toBeVisible();
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.reload();
+ await expect(page.locator('html')).toHaveClass(/motion-paused/);
+ await expect(page.getByRole('heading',{name:/DEIN AUTO/})).toBeVisible();
+ await page.setViewportSize({width:360,height:800});
+ await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+ await page.screenshot({path:'visual-artifacts/cinema-hero-mobile.png',fullPage:false,animations:'disabled'});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+});
+
+test('scroll advances the cinematic story without hijacking scrolling',async({page})=>{
+ await page.setViewportSize({width:1440,height:900});
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ await page.goto('/');
+ await page.locator('#film').evaluate(el=>window.scrollTo(0,el.getBoundingClientRect().top+scrollY+(el.clientHeight-innerHeight)*.5));
+ await expect(page.locator('.story-stage')).toHaveAttribute('data-chapter','1');
+ await page.locator('#film').evaluate(el=>window.scrollTo(0,el.getBoundingClientRect().top+scrollY+(el.clientHeight-innerHeight)*.9));
+ await expect(page.locator('.story-stage')).toHaveAttribute('data-chapter','2');
+ await page.getByRole('button',{name:'Animationen pausieren'}).click();
+ await expect(page.locator('html')).toHaveClass(/motion-paused/);
+});
