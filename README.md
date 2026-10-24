@@ -34,20 +34,20 @@ React 19, TypeScript, Vite 7, Cloudflare Workers, D1, Resend, optional Turnstile
 
 ## GitHub Actions manual deployment
 
-A manual workflow exists at .github/workflows/deploy.yml under GitHub Actions -> Deploy TextMeQR to Cloudflare -> Run workflow. It checks TypeScript/unit tests, builds the app, applies remote D1 migrations, then deploys the Worker with its custom domain.
+A deployment workflow exists at .github/workflows/deploy.yml under GitHub Actions -> Deploy TextMeQR to Cloudflare. It starts automatically for relevant pushes to main or via Run workflow. It runs TypeScript/unit and visual checks, applies D1 migrations, then deploys the Worker, runtime secrets, and custom domain, performs live readiness checks, and validates the Resend sender against a test-only recipient.
 
-The workflow intentionally does not run automatically on every push; public launch requires verified legal pages and credentials.
+The workflow runs on relevant code/configuration pushes to main and can also be launched manually. It checks the application, migrates D1, and deploys Worker code and its runtime secrets together. A successful deploy is not proof of actual inbox delivery; the workflow also tests a Resend sandbox recipient to validate the API key and verified sender.
 
 Before running it, in GitHub repository -> Settings -> Secrets and variables -> Actions create:
 - CLOUDFLARE_ACCOUNT_ID: the account identifier from your Cloudflare dashboard URL (511541f52b4f4d8342e055f5567ae169).
 - CLOUDFLARE_API_TOKEN: a newly issued scoped token with Workers edit, D1 edit and appropriate custom-domain/zone permissions for the account. Never paste the token into the repository or into a chat.
 
-Separately in Cloudflare Workers -> textmeqr -> Settings -> Variables and Secrets, add runtime secrets:
-- AUTH_SECRET: a random secret at least 32 bytes
-- RESEND_API_KEY and MAIL_FROM: optional for dashboard notices, but required for email-code login. MAIL_FROM must be an actual sender identity verified in Resend.
-- TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY: recommended for a public launch; set the pair together.
+In the same GitHub repository/environment Actions Secrets store, configure:
+- AUTH_SECRET: a random secret with at least 24 characters (32+ bytes recommended).
+- RESEND_API_KEY: production sending key from Resend.
+- MAIL_FROM: sender identity for a domain already verified by Resend (for example TextMeQR <no-reply@textmeqr.smarbiz.sbs>).
 
-If the Worker does not yet exist, Wrangler can create it on the first authenticated deployment, after which you can configure its runtime secrets and deploy again. No production user registration can function before AUTH_SECRET and email sender settings are in place.
+The workflow automatically supplies these three GitHub secrets to Cloudflare Workers at deploy time using a private temporary secrets file, removed afterwards. Do **not** paste them into source, README, or chat. TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY are recommended optional runtime secrets for a public launch and must be configured together directly on the Worker if enabled. Successful /api/config confirms presence, while the Resend sandbox check tests if the sender/API key are accepted. No production user registration works before AUTH_SECRET, the Resend key, and a verified MAIL_FROM are active.
 
 ## Local development
 Copy .dev.vars.example to .dev.vars, fill credentials, create the D1 binding ID in Wrangler, and apply migration using npm run db:local. Start npx wrangler dev for the API and static assets (build first). Alternatively use npm run dev for Vite hot reload while local Wrangler runs on port 8787.
