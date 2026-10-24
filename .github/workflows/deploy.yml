@@ -55,6 +55,36 @@ jobs:
           path: visual-artifacts/
       - name: Apply D1 migrations
         run: npm run db:remote
+      - name: Verify registration secrets exist in GitHub
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+        run: |
+          test -n "$AUTH_SECRET" || (echo "Missing AUTH_SECRET secret" && exit 1)
+          test -n "$RESEND_API_KEY" || (echo "Missing RESEND_API_KEY secret" && exit 1)
+          test -n "$MAIL_FROM" || (echo "Missing MAIL_FROM secret" && exit 1)
+          test "${#AUTH_SECRET}" -ge 24 || (echo "AUTH_SECRET must be at least 24 characters" && exit 1)
       - name: Deploy Worker and custom domain
         run: npx wrangler deploy
+      - name: Sync GitHub secrets to the production Worker
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+        run: |
+          # Never print secret values, commit them, or include them in deployment artifacts.
+          printf '%s' "$AUTH_SECRET" | npx wrangler secret put AUTH_SECRET
+          printf '%s' "$RESEND_API_KEY" | npx wrangler secret put RESEND_API_KEY
+          printf '%s' "$MAIL_FROM" | npx wrangler secret put MAIL_FROM
+      - name: Smoke-test deployed registration prerequisites
+        run: |
+          set -euo pipefail
+          ORIGIN="https://textmeqr.smarbiz.sbs"
+          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "$ORIGIN/api/health" | jq -e '.ok == true and .service == "textmeqr"'
+          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "$ORIGIN/api/config" | jq -e '.notificationsEnabled == true'
+          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "$ORIGIN/api/auth/me" | jq -e '.user == null'
+          # Invalid input must return a safe 400; this does not send any email.
+          STATUS=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --request POST "$ORIGIN/api/auth/request" --header 'Content-Type: application/json' --header "Origin: $ORIGIN" --data '{"email":"invalid"}')
+          test "$STATUS" = "400" || (echo "Expected 400 for malformed email, got $STATUS" && exit 1)
 
