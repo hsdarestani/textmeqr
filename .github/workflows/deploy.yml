@@ -1,6 +1,15 @@
 name: Deploy TextMeQR to Cloudflare
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'vite.config.ts'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 permissions:
@@ -34,7 +43,18 @@ jobs:
         run: npm run check
       - name: Build UI
         run: npm run build
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Verify responsive screens and interactions
+        run: npm run test:visual
+      - name: Save visual review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: textmeqr-design-review
+          path: visual-artifacts/
       - name: Apply D1 migrations
         run: npm run db:remote
       - name: Deploy Worker and custom domain
         run: npx wrangler deploy
+

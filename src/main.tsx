@@ -14,10 +14,10 @@ type Notice = { id: string; reason: string; note: string; is_read: number; email
 type Config = { turnstileSiteKey: string | null; notificationsEnabled: boolean };
 type ApiError = Error & { status?: number };
 const themes = [
-  { id: 'classic_dawn', title: 'Classic Dawn', bg: '#eee8d9', ink: '#233a29', qr: '#172b20' },
-  { id: 'galactic_twilight', title: 'Galactic Twilight', bg: '#252842', ink: '#ebffbc', qr: '#1c2841' },
-  { id: 'emerald_canopy', title: 'Emerald Canopy', bg: '#164634', ink: '#d9ff9e', qr: '#133e31' },
-  { id: 'azure_depths', title: 'Azure Depths', bg: '#1b455c', ink: '#d4eeff', qr: '#19364a' },
+  { id: 'classic_dawn', title: 'Electric Blue', bg: '#1548df', ink: '#ffffff', qr: '#101b46' },
+  { id: 'galactic_twilight', title: 'Ultraviolet', bg: '#642acb', ink: '#ffffff', qr: '#241242' },
+  { id: 'emerald_canopy', title: 'Signal Red', bg: '#ad193a', ink: '#ffffff', qr: '#3b101b' },
+  { id: 'azure_depths', title: 'Midnight', bg: '#122044', ink: '#d4eeff', qr: '#101b38' },
   { id: 'monochic', title: 'Monochic', bg: '#1a1c1b', ink: '#ffffff', qr: '#151515' }
 ];
 const themesById = (id: string) => themes.find(theme => theme.id === id) || themes[0];
@@ -52,13 +52,13 @@ function Nav({ dark = true }: { dark?: boolean }) {
   return <header className={'nav ' + (dark ? 'nav-dark' : 'nav-light')}>
     <div className="container nav-inner">
       <Logo light={dark} />
-      <nav className={open ? 'nav-links is-open' : 'nav-links'} aria-label="Hauptnavigation">
+      <nav onClick={() => setOpen(false)} className={open ? 'nav-links is-open' : 'nav-links'} aria-label="Hauptnavigation">
         <a href="/#so-gehts">So funktioniert's</a>
         <a href="/#vorteile">Vorteile</a>
         <a href="/#faq">Fragen</a>
       </nav>
       <a className="nav-action" href="/app">Zum Dashboard <ArrowUpRight size={17}/></a>
-      <button className="hamburger" aria-label={open ? 'Menü schließen' : 'Menü öffnen'} onClick={() => setOpen(!open)}>{open ? <X/> : <Menu/>}</button>
+      <button className="hamburger" aria-expanded={open} aria-label={open ? 'Menü schließen' : 'Menü öffnen'} onClick={() => setOpen(!open)}>{open ? <X/> : <Menu/>}</button>
     </div>
   </header>;
 }
@@ -80,41 +80,17 @@ function QRVisual({ value, className = '', theme = 'classic_dawn' }: { value: st
   }, [value, theme]);
   return source ? <img className={'qr-img ' + className} src={source} alt="Dein individueller QR-Code" /> : <div className="qr-loading" aria-label="QR-Code wird erzeugt"><QrCode size={44}/></div>;
 }
-function CarArt() {
-  return <div className="car-scene">
-    <div className="scene-grid"/>
-    <div className="scene-light"/>
-    <div className="scene-title">DRIVE CONNECTED<span> / 001</span></div>
-    <svg className="car-art" viewBox="0 0 830 420" role="img" aria-label="Stilisierte Premium-Sportlimousine">
-      <defs>
-        <linearGradient id="paint" x1="0" y1="0" x2=".7" y2="1"><stop offset="0" stopColor="#708174"/><stop offset=".27" stopColor="#303a33"/><stop offset=".62" stopColor="#131e18"/><stop offset="1" stopColor="#6b7969"/></linearGradient>
-        <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#57675f"/><stop offset=".65" stopColor="#141e1c"/><stop offset="1" stopColor="#07100e"/></linearGradient>
-        <linearGradient id="trim" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#c8ff69"/><stop offset=".5" stopColor="#a4c46f"/><stop offset="1" stopColor="#dffda5"/></linearGradient>
-        <filter id="glow"><feGaussianBlur stdDeviation="12"/></filter>
-      </defs>
-      <ellipse cx="411" cy="350" rx="355" ry="24" fill="#a8e7a0" opacity=".16" filter="url(#glow)"/>
-      <path d="M61 256 Q85 224 170 219 L265 195 Q315 134 393 127 L527 128 Q603 140 668 201 L755 222 Q786 227 791 258 L797 300 Q791 324 765 327 L83 327 Q50 319 49 292 Z" fill="url(#paint)" stroke="#7c9582" strokeWidth="3"/>
-      <path d="M268 194 Q323 141 390 140 L511 139 Q572 149 643 199 L451 202 Z" fill="url(#glass)" stroke="#90a297" strokeWidth="2"/>
-      <path d="M443 144 L451 201" stroke="#b8c7b7" strokeWidth="4" opacity=".7"/>
-      <path d="M79 258 Q209 229 376 230 L718 237" stroke="#97b09d" strokeWidth="3" fill="none" opacity=".52"/>
-      <path d="M67 288 Q393 297 781 281" stroke="#08110e" strokeWidth="11" fill="none"/>
-      <path d="M90 315 L749 315" stroke="url(#trim)" strokeWidth="3"/>
-      <path d="M761 248 L790 252 L788 263 L755 267" fill="#d6fba3" opacity=".92"/>
-      <path d="M61 250 L111 237 L109 247 L62 263" fill="#f1ffea"/>
-      <path d="M460 222 L511 223" stroke="#bccfba" strokeWidth="3"/>
-      <g><circle cx="220" cy="321" r="63" fill="#0c100f"/><circle cx="220" cy="321" r="49" fill="#83938a"/><circle cx="220" cy="321" r="40" fill="#1e2723"/><circle cx="220" cy="321" r="18" fill="#b5c7b5"/><path d="M220 282 V360 M181 321 H259 M193 294 L247 348 M247 294 L193 348" stroke="#7e9386" strokeWidth="8"/></g>
-      <g><circle cx="656" cy="321" r="63" fill="#0c100f"/><circle cx="656" cy="321" r="49" fill="#83938a"/><circle cx="656" cy="321" r="40" fill="#1e2723"/><circle cx="656" cy="321" r="18" fill="#b5c7b5"/><path d="M656 282 V360 M617 321 H695 M629 294 L683 348 M683 294 L629 348" stroke="#7e9386" strokeWidth="8"/></g>
-      <path d="M50 333 L788 333" stroke="#c7fc7a" strokeWidth="1" opacity=".4"/>
-    </svg>
-    <div className="scene-bottom"><span>CONNECTIVITY, WITHOUT COMPROMISE.</span><span>01 / 03</span></div>
-  </div>;
-}
-function HeroQR() {
-  return <div className="hero-float">
-    <div className="float-label"><span className="float-dot"/> LIVE CONNECTION</div>
-    <div className="float-content"><div className="float-qr"><QRVisual value="https://textmeqr.de"/></div>
-      <div><div className="float-small">TEXTME / DIGITAL ID</div><strong>SCAN.<br/>NOTIFY.<br/>DONE.</strong></div>
-    </div><div className="float-bottom">Kein Nummernaustausch. Keine App nötig. <ArrowUpRight size={16}/></div>
+function ConnectionArt() {
+  return <div className="connection-art" aria-label="TextMe QR und beispielhafter Fahrzeughinweis">
+    <div className="signal-orbit orbit-a"/><div className="signal-orbit orbit-b"/><div className="signal-orbit orbit-c"/>
+    <div className="signal-axis"/><div className="art-coordinate">TEXTME / PRIVATE CONNECTION</div>
+    <div className="identity-card"><div className="identity-top"><Logo light/><span>FAHRZEUG ID</span></div>
+      <div className="identity-qr"><QRVisual value={window.location.origin} theme="monochic"/><span className="scan-beam"/></div>
+      <div className="identity-bottom"><span>Ein Scan. Ein guter Hinweis.</span><ScanLine size={23}/></div>
+    </div>
+    <div className="signal-notice"><div className="signal-notice-icon"><Bell size={22}/></div><div><small>SO SIEHT EIN HINWEIS AUS</small><strong>Dein Licht ist noch an.</strong><span>Diskret. Direkt in dein Postfach.</span></div><span className="notice-dot"/></div>
+    <div className="privacy-chip"><ShieldCheck size={16}/> Deine Nummer bleibt privat</div>
+    <div className="art-caption"><span>SCANNEN</span><i/><span>HINWEIS SENDEN</span><i/><span>VERBUNDEN</span></div>
   </div>;
 }
 function Landing() {
@@ -123,21 +99,21 @@ function Landing() {
       <Nav/>
       <section className="hero"><div className="container hero-layout">
         <div className="hero-copy">
-          <div className="eyebrow"><span className="eyebrow-line"/> SMART MOBILITY, REIMAGINED <span className="eyebrow-index">01 / 04</span></div>
+          <div className="eyebrow"><span className="eyebrow-line"/> KLEINER CODE. GROSSER UNTERSCHIED. </div>
           <h1>DEIN AUTO.<br/><span className="heading-light">ERREICHBAR.</span><br/><em>PRIVAT.</em></h1>
           <p className="hero-lede">Ein Scan genügt. Andere können dir Bescheid geben, wenn etwas mit deinem Auto ist. Ohne deine Telefonnummer. Ohne umständliche App.</p>
           <div className="hero-cta"><a className="btn btn-lime" href="/app">Jetzt QR-Code erstellen <ArrowUpRight size={20}/></a><a className="hero-text-link" href="/#so-gehts">So funktioniert's <ArrowRight size={18}/></a></div>
           <div className="hero-trust"><span><ShieldCheck size={17}/> Kontaktdaten bleiben privat</span><span><Zap size={16}/> In Sekunden eingerichtet</span></div>
         </div>
-        <div className="hero-visual"><CarArt/><HeroQR/><div className="vertical-type">A NEW WAY TO STAY CONNECTED</div></div>
+        <div className="hero-visual"><ConnectionArt/></div>
       </div></section>
-      <div className="feature-strip"><div className="container strip-inner"><span>NO PHONE NUMBER</span><i/><span>ONE SIMPLE SCAN</span><i/><span>BUILT FOR THE ROAD</span><i/><span>ALWAYS YOUR CHOICE</span></div></div>
+      <div className="feature-strip"><div className="container strip-inner"><span>KEINE TELEFONNUMMER</span><i/><span>EIN EINFACHER SCAN</span><i/><span>FÜR DEINEN ALLTAG</span><i/><span>DU HAST DIE KONTROLLE</span></div></div>
     </div>
     <section id="so-gehts" className="how-section light-section"><div className="container">
       <div className="section-heading"><div><div className="kicker"><span className="kicker-icon">01</span> DIE IDEE</div><h2>Weniger Aufwand.<br/><span>Mehr Rücksicht.</span></h2></div>
         <p>Parkplatz blockiert? Fenster offen? Licht angelassen? Ein QR-Code macht den kleinen Hinweis ganz einfach.</p></div>
       <div className="steps-grid">
-        <div className="step-card"><div className="step-top"><span>01 / ANLEGEN</span><QrCode/></div><div className="step-graphic graphic-code"><div className="graphic-qr"><QRVisual value="https://textmeqr.de"/></div><span className="orbit orbit-1"/><span className="orbit orbit-2"/></div><h3>QR-Code erstellen</h3><p>Einmal mit deiner E-Mail anmelden, Fahrzeug benennen und QR-Code herunterladen.</p></div>
+        <div className="step-card"><div className="step-top"><span>01 / ANLEGEN</span><QrCode/></div><div className="step-graphic graphic-code"><div className="graphic-qr"><QRVisual value={window.location.origin}/></div><span className="orbit orbit-1"/><span className="orbit orbit-2"/></div><h3>QR-Code erstellen</h3><p>Einmal mit deiner E-Mail anmelden, Fahrzeug benennen und QR-Code herunterladen.</p></div>
         <div className="step-card"><div className="step-top"><span>02 / ANBRINGEN</span><CarFront/></div><div className="step-graphic graphic-car"><CarFront size={106} strokeWidth={1}/><div className="graphic-sticker"><ScanLine size={23}/></div></div><h3>Sichtbar platzieren</h3><p>Platziere den Code gut sichtbar im Fahrzeug. Auch als digitale Vorlage zum Ausdrucken.</p></div>
         <div className="step-card"><div className="step-top"><span>03 / VERBINDEN</span><Bell/></div><div className="step-graphic graphic-notice"><div className="mini-notice"><div className="mini-icon"><Bell size={19}/></div><div><small>NEUER HINWEIS</small><strong>Dein Licht ist noch an.</strong></div><CheckCircle2 size={22}/></div></div><h3>Hinweis erhalten</h3><p>Andere wählen einen Grund aus. Du siehst die Nachricht in deinem persönlichen Dashboard.</p></div>
       </div>
@@ -145,7 +121,7 @@ function Landing() {
     <section id="vorteile" className="benefits-section"><div className="container benefits-layout"><div className="benefits-left"><div className="kicker"><span className="kicker-icon">02</span> WARUM TEXTME?</div><h2>OFFEN FÜR<br/>HINWEISE.<br/><em>GESCHÜTZT.</em></h2><p>Du entscheidest, wann du erreichbar bist. TextMe gibt anderen einen Weg, freundlich auf Dinge aufmerksam zu machen. Nicht mehr, nicht weniger.</p><a className="btn btn-outline" href="/app">Meinen Code erstellen <ArrowUpRight size={18}/></a></div>
       <div className="benefit-list"><div className="benefit-item"><div className="benefit-icon"><Fingerprint/></div><div><h3>Privat von Anfang an</h3><p>Dein Code zeigt weder Telefonnummer noch E-Mail-Adresse. Nur ein einfaches Hinweisformular.</p></div><span>01</span></div><div className="benefit-item"><div className="benefit-icon"><ScanLine/></div><div><h3>Keine App nötig</h3><p>Wer dir einen Hinweis schickt, braucht nur die Smartphone-Kamera.</p></div><span>02</span></div><div className="benefit-item"><div className="benefit-icon"><Gauge/></div><div><h3>Du behältst die Kontrolle</h3><p>Codes umbenennen, mehrere Fahrzeuge verwalten oder einen Code jederzeit pausieren.</p></div><span>03</span></div><div className="benefit-item"><div className="benefit-icon"><LockKeyhole/></div><div><h3>Weniger Spam</h3><p>Begrenzte Nachrichtenhäufigkeit und eine optionale Sicherheitsprüfung schützen die Kontaktfunktion.</p></div><span>04</span></div></div>
     </div></section>
-    <section className="banner-section"><div className="container banner-content"><div><div className="kicker">DEIN FAHRZEUG, DEIN CODE</div><h2>MEHR ALS NUR<br/>EIN <em>STICKER.</em></h2><p>Digital starten, später auf hochwertigem Material anbringen. Deine Verbindung bleibt dieselbe.</p><a href="/app" className="btn btn-dark">Kostenlos digital starten <ArrowUpRight size={20}/></a></div><div className="banner-art"><div className="banner-plate"><div className="plate-word">textme<span>.</span></div><div className="plate-qr"><QRVisual value="https://textmeqr.de"/></div><div className="plate-caption">SCAN ME IF THERE'S AN ISSUE</div></div><span className="banner-sun"/></div></div></section>
+    <section className="banner-section"><div className="container banner-content"><div><div className="kicker">DEIN FAHRZEUG, DEIN CODE</div><h2>MEHR ALS NUR<br/>EIN <em>STICKER.</em></h2><p>Digital starten, später auf hochwertigem Material anbringen. Deine Verbindung bleibt dieselbe.</p><a href="/app" className="btn btn-dark">Kostenlos digital starten <ArrowUpRight size={20}/></a></div><div className="banner-art"><div className="banner-plate"><div className="plate-word">textme<span>.</span></div><div className="plate-qr"><QRVisual value={window.location.origin}/></div><div className="plate-caption">SCANNEN UND HINWEIS SENDEN</div></div><span className="banner-sun"/></div></div></section>
     <section id="faq" className="faq-section light-section"><div className="container faq-layout"><div><div className="kicker"><span className="kicker-icon">03</span> GUT ZU WISSEN</div><h2>NOCH FRAGEN<span className="accent-mark">?</span></h2><p>Die wichtigsten Antworten auf einen Blick.</p></div><div className="faq-items">
       <details><summary>Ist meine Telefonnummer sichtbar?<Plus size={19}/></summary><p>Nein. Wer deinen QR-Code scannt, sieht nur die verfügbaren Hinweisgründe und ein optionales Nachrichtenfeld. Deine E-Mail und Telefonnummer werden nicht angezeigt.</p></details>
       <details><summary>Muss man eine App installieren?<Plus size={19}/></summary><p>Nein. Der Code öffnet eine mobil optimierte Webseite. Ein Smartphone mit Kamera und Internet reicht.</p></details>
@@ -205,7 +181,7 @@ function Auth({ config }: { config: Config }) {
       else { await api('/auth/verify', { method: 'POST', body: JSON.stringify({ email, code: pin }) }); window.location.assign('/app'); }
     } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
   }
-  return <InnerLayout simple><main className="auth-main"><div className="auth-splash"><div className="kicker">DEIN DIGITALER FAHRZEUGBEGLEITER</div><h1>DEIN AUTO.<br/><em>DEIN CODE.</em></h1><p>Ein sicherer Zugang. Kein Passwort. Alles im Griff.</p><div className="auth-splash-graphic"><div><QrCode size={100} strokeWidth={1}/></div><span>STAY IN CONTROL / 24.7</span></div></div><section className="auth-panel"><div className="panel-step">TEXTME / ACCOUNT <span>{sent ? '02' : '01'} / 02</span></div><div className="auth-icon"><Mail size={26}/></div><h2>{sent ? 'Postfach prüfen.' : 'Schön, dass du da bist.'}</h2><p>{sent ? 'Wir haben einen sechsstelligen Code an ' + email + ' geschickt. Er ist 10 Minuten gültig.' : 'Mit deiner E-Mail-Adresse erhältst du einen einmaligen Anmeldecode. Ohne Passwort.'}</p><form onSubmit={submit} className="auth-form">
+  return <InnerLayout simple><main className="auth-main"><div className="auth-splash"><div className="kicker">DEIN DIGITALER FAHRZEUGBEGLEITER</div><h1>DEIN AUTO.<br/><em>DEIN CODE.</em></h1><p>Ein sicherer Zugang. Kein Passwort. Alles im Griff.</p><div className="auth-splash-graphic"><div><QrCode size={100} strokeWidth={1}/></div><span>DEIN AUTO. DEINE KONTROLLE.</span></div></div><section className="auth-panel"><div className="panel-step">DEIN TEXTME ZUGANG <span>{sent ? '02' : '01'} / 02</span></div><div className="auth-icon"><Mail size={26}/></div><h2>{sent ? 'Postfach prüfen.' : 'Schön, dass du da bist.'}</h2><p>{sent ? 'Wir haben einen sechsstelligen Code an ' + email + ' geschickt. Er ist 10 Minuten gültig.' : 'Mit deiner E-Mail-Adresse erhältst du einen einmaligen Anmeldecode. Ohne Passwort.'}</p><form onSubmit={submit} className="auth-form">
     {!sent ? <label>E-MAIL-ADRESSE<input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="deine@email.de"/></label>
       : <label>DEIN ZUGANGSCODE<input type="text" autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required value={pin} onChange={e => setPin(e.target.value.replace(/\D/g, ''))} placeholder="000000" className="otp-input"/></label>}
     {!sent && <Turnstile siteKey={config.turnstileSiteKey} onToken={captchaCallback}/>}
@@ -359,3 +335,4 @@ function Main() {
   return <Landing/>;
 }
 createRoot(document.getElementById('root')!).render(<React.StrictMode><Main/></React.StrictMode>);
+
