@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'worker/**'
+      - 'migrations/**'
+      - 'visual/**'
+      - 'wrangler.jsonc'
       - 'public/**'
       - 'index.html'
       - 'package.json'
@@ -65,24 +69,42 @@ jobs:
           test -n "$RESEND_API_KEY" || (echo "Missing RESEND_API_KEY secret" && exit 1)
           test -n "$MAIL_FROM" || (echo "Missing MAIL_FROM secret" && exit 1)
           test "${#AUTH_SECRET}" -ge 24 || (echo "AUTH_SECRET must be at least 24 characters" && exit 1)
-      - name: Deploy Worker and custom domain
-        run: npx wrangler deploy
-      - name: Sync GitHub secrets to the production Worker
+      - name: Deploy Worker with runtime secrets and custom domain
         env:
           AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
         run: |
-          # Never print secret values, commit them, or include them in deployment artifacts.
-          printf '%s' "$AUTH_SECRET" | npx wrangler secret put AUTH_SECRET
-          printf '%s' "$RESEND_API_KEY" | npx wrangler secret put RESEND_API_KEY
-          printf '%s' "$MAIL_FROM" | npx wrangler secret put MAIL_FROM
+          set -euo pipefail
+          umask 077
+          SECRETS_FILE="$(mktemp)"
+          export SECRETS_FILE
+          trap 'rm -f "$SECRETS_FILE"' EXIT
+          # Generate a private temporary JSON file. Secret values are never printed.
+          node --input-type=module -e '
+            import { writeFileSync } from "node:fs";
+            writeFileSync(process.env.SECRETS_FILE, JSON.stringify({
+              AUTH_SECRET: process.env.AUTH_SECRET,
+              RESEND_API_KEY: process.env.RESEND_API_KEY,
+              MAIL_FROM: process.env.MAIL_FROM
+            }));
+          '
+          npx wrangler deploy --secrets-file "$SECRETS_FILE"
       - name: Smoke-test deployed registration prerequisites
         run: |
           set -euo pipefail
           ORIGIN="https://textmeqr.smarbiz.sbs"
           curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "$ORIGIN/api/health" | jq -e '.ok == true and .service == "textmeqr"'
-          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "$ORIGIN/api/config" | jq -e '.notificationsEnabled == true'
+          READY=0
+          for attempt in $(seq 1 15); do
+            if curl --fail --silent --show-error "$ORIGIN/api/config" | jq -e '.notificationsEnabled == true' >/dev/null; then
+              READY=1
+              break
+            fi
+            echo "Waiting for Worker secret propagation ($attempt/15)"
+            sleep 4
+          done
+          test "$READY" -eq 1 || (echo "Email settings still not active on the production Worker" && exit 1)
           curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 5 "$ORIGIN/api/auth/me" | jq -e '.user == null'
           # Invalid input must return a safe 400; this does not send any email.
           STATUS=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --request POST "$ORIGIN/api/auth/request" --header 'Content-Type: application/json' --header "Origin: $ORIGIN" --data '{"email":"invalid"}')
